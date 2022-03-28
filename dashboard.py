@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import requests
+import tweepy
+import config
 
 # st.title("This is the title")
 
@@ -34,6 +36,12 @@ import requests
 
 # st.image("https://www.ccn.com/wp-content/uploads/2019/03/Apple-stock-chart.png")
 
+auth = tweepy.OAuth1UserHandler(
+#    consumer_key, consumer_secret, access_token, access_token_secret
+)
+
+api = tweepy.API(auth)
+
 option = st.sidebar.selectbox(
     "Which Dashboard?",
     ('twitter', 'wallstreetbets', 'chart', 'stocktwits', 'chart', 'pattern')
@@ -42,13 +50,33 @@ option = st.sidebar.selectbox(
 st.header(option)
 
 if option == 'twitter':
-    st.subheader("twitter dashboard logic")
+    for username in config.TWITTER_USERNAMES:
+        user = api.get_user(username)
+        tweets = api.user_timeline(username)
+
+        st.subheader(username)
+        st.image(user.profile_image_url)
+
+        for tweet in tweets:
+            if '$' in tweet.text:
+                words = tweet.text.split(' ')
+                for word in words:
+                    if word.startswith('$') and word[1:].isalpha():
+                        symbol = word[1:]
+                        st.write(tweet.text)
+                        st.image(f"somecharthere")
 
 if option == 'chart':
     st.subheader("this is the chart dashboard")
 
+if option == 'wallstreetbets':
+    st.subheader("wallstreetbets")
+
+if option == 'pattern':
+    st.subheader("pattern")
+
 if option == 'stocktwits':
-    # st.subheader('stocktwits')
+    symbol = st.sidebar._text_input("Symbol", value='AAPL', max_chars=5)
 
     r = requests.get()
 
